@@ -1,7 +1,7 @@
 {
-  "name": "gorila",
+  "name": "gorila-back",
   "version": "1.0.0",
-  "description": "Teste de front-end Gorila",
+  "description": "Back-end Gorila",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
