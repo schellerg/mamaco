@@ -1,0 +1,15 @@
+{
+  "name": "gorila-front",
+  "version": "1.0.0",
+  "description": "Front-end Gorila",
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start"
+  },
+  "author": "Pedro Schellerg",
+  "license": "ISC",
+  "dependencies": {
+    "create-react-native-app": "^3.5.3",
+    "expo-cli": "^4.2.1"
+  }
+}
