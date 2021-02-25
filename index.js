@@ -2,7 +2,6 @@ const express = require("express");
 const mysql = require("mysql2/promise");
 const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
-const { response } = require("express");
 
 const SERVER_PORT = 7777;
 const JWT_SECRET = 'mamacoquerbanana';
@@ -10,6 +9,7 @@ const JWT_SECRET = 'mamacoquerbanana';
 const app = express();
 app.use(bodyParser.json());
 
+// JWT validation
 const secureRouteMiddleware = (req, res, next) => {
     const { authorization } = req.headers;
     const token = authorization.replace("Bearer ", "");
@@ -26,8 +26,10 @@ const secureRouteMiddleware = (req, res, next) => {
     });
 };
 
-// Rotas
+// Routes
 const loadRoutes = (conn) => {
+
+    // Authentication
     app.post("/login", async (req, res) => {
         const { username, password} = req.body;
         try {
@@ -68,6 +70,7 @@ const loadRoutes = (conn) => {
         }
     });
 
+    // List an user's investments
     app.get("/investment", secureRouteMiddleware, async (req, res) => {
         try {
             const { user } = req;
@@ -80,6 +83,7 @@ const loadRoutes = (conn) => {
         }
     });
 
+    // Insert an user's investment
     app.post("/investment", secureRouteMiddleware, async (req, res) => {
         try {
             const { user, body: { type, value, date }} = req;
@@ -92,6 +96,7 @@ const loadRoutes = (conn) => {
         }
     });
 
+    // Delete an user's investment
     app.delete("/investment/:id", secureRouteMiddleware, async (req, res) => {
         try {
             const { user, params: { id }} = req;
@@ -114,9 +119,10 @@ const loadRoutes = (conn) => {
     });
 }
 
+// Start the server
 app.listen(SERVER_PORT, async () => {
     try {
-        // Banco de dados
+        // Database connection
         const connection = await mysql.createConnection({
             host: 'localhost',
             user: 'root',

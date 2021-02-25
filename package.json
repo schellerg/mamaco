@@ -1,7 +1,7 @@
 {
   "name": "gorila",
   "version": "1.0.0",
-  "description": "Teste de vaga para a Gorila",
+  "description": "Teste de front-end Gorila",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
