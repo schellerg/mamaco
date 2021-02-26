@@ -1,15 +1,13 @@
 import React from 'react';
-import { View } from 'react-native';
-import { Input, Button } from 'react-native-elements';
+import { Text } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const Wallet = () => {
   return (
-    <View>
+    <ScrollView>
       <Text>Carteira de Investimentos</Text>
-    </View>
+    </ScrollView>
   )
 }
-
-const styles = StyleSheet.create({});
 
 export default Wallet;
