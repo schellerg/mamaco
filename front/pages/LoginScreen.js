@@ -1,68 +1,62 @@
 import React, { useState } from 'react';
 import { Keyboard } from 'react-native';
-import { StyleSheet, Text, View } from 'react-native';
-import { Input, Button } from 'react-native-elements';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { StyleSheet, View } from 'react-native';
+import { Button, Input, Layout, Text } from '@ui-kitten/components';
 import api from '../services/api';
-
-import Constants from 'expo-constants';
-const {  manifest } = Constants;
-const uri = `http://${manifest.debuggerHost}`;
-console.log(uri);
 
 const Login = ({ navigation }) => {
   const [ enteredUser, setEnteredUser ] = useState([]);
   const [ enteredPass, setEnteredPass] = useState([]);
+  const [ isValid, setIsValid] = useState(true);
+  const [ errMessage, setErrMessage ] = useState('');
 
   async function handleSubmit() {
-    try {
-      const res = await api.post('/login', {
-        username: enteredUser,
-        password: enteredPass
-      });
-      console.log(res);
-      // navigation.navigate('Wallet');
-    } catch (error) {
-      console.log(error);
-    }
+      try {
+        if (!enteredUser.length || !enteredPass.length) {
+          setIsValid(false);
+          setErrMessage('Preencha os campos corretamente');
+          return;
+        }
+
+        const res = await api.post('/login', {
+          username: enteredUser,
+          password: enteredPass
+        });
+
+        navigation.navigate('Wallet');
+      } catch (error) {
+        setIsValid(false);
+        setErrMessage(error.response.data.message);
+      }
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.inputView}>
-        <Text style={styles.logo}>Mamaco</Text>
+    <Layout style={styles.container}>
+      <Layout style={styles.inputView}>
+        <Text category='h1' style={styles.logo}>MAMACO</Text>
         <Input
+          style={styles.input}
           blurOnSubmit
           label='Usuário'
-          leftIcon={
-            <Icon
-              name='user'
-              size={20}
-              />
-            }
-            placeholder='Ex: kingkong'
-            onChangeText={enteredUser => setEnteredUser(enteredUser.toLowerCase())}
+          placeholder='Ex: kingkong'
+          onChangeText={enteredUser => setEnteredUser(enteredUser.toLowerCase())}
         />
         <Input
+          style={styles.input}
           blurOnSubmit
           label='Senha'
-          leftIcon={
-            <Icon
-              name='lock'
-              size={20}
-              />
-          }
           placeholder='Digite a sua senha'
           secureTextEntry
           onBlur={Keyboard.dismiss}
           onChangeText={enteredPass => setEnteredPass(enteredPass)}
         />
-        <Button
-          onPress={() => handleSubmit() }
-          title='Entrar'
-        />
-      </View>
-    </View>
+        { !isValid ? (
+          <View>
+            <Text style={styles.error}>{errMessage}</Text>
+          </View>) : null}
+        <Button status='primary' style={styles.button} onPress={() => handleSubmit() }>ENTRAR</Button>
+      </Layout>
+    </Layout>
   );
 }
 
@@ -75,14 +69,23 @@ const styles = StyleSheet.create({
   },
   logo: {
     fontWeight: 'bold',
-    fontSize: 30,
     color: 'black',
     textAlign: 'center',
     marginBottom: 40
   },
   inputView: {
     width: '80%',
-  }
+  },
+  input: {
+    marginBottom: 10,
+  },
+  button: {
+    marginTop: 20,
+  },
+  error: {
+    color: 'red',
+    textAlign: 'center',
+  },
 });
 
 export default Login;

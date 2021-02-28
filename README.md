@@ -1,6 +1,21 @@
 # Teste front-end Gorila
 
 ## Instalação
+### Back-end
+Entre na pasta [back](/back) e execute o comando:
+```bash
+$ npm install
+```
+
+Caso precise editar a porta e o _JWT secret_ da API, altere as constantes `PORT` e `JWT_SECRET` no arquivo [index.js](/back/index.js).
+
+Para inicializar a API, rode o comando abaixo:
+```bash
+$ npm start
+```
+
+### Front-end
+Entre na pasta [back](/front) e execute o comando:
 ```bash
 $ npm install
 ```

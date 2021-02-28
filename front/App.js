@@ -1,6 +1,8 @@
 import 'react-native-gesture-handler';
 import React from 'react';
 
+import * as eva from '@eva-design/eva';
+import { ApplicationProvider } from '@ui-kitten/components';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -12,15 +14,18 @@ import Wallet from './pages/WalletScreen';
 
 const App = () => {
     return (
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="Login"
-            component={Login}
-          />
-          <Stack.Screen name="Wallet" component={Wallet} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <ApplicationProvider {...eva} theme={eva.light}>
+        <NavigationContainer>
+          <Stack.Navigator>
+            {/* <Stack.Screen
+              name="Login"
+              component={Login}
+              options={{headerShown:false}}
+            /> */}
+            <Stack.Screen name="Wallet" component={Wallet} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </ApplicationProvider>
     );
 }
 
