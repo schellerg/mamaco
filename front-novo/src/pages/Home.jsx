@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
+import { useHistory } from 'react-router-dom';
 import api from '../Api'
 import { Button, Heading, Input, SimpleGrid, Stack, Text } from '@chakra-ui/react'
 
 const Home = () => {
+    const history = useHistory();
     const [ enteredUser, setEnteredUser ] = useState();
     const [ enteredPass, setEnteredPass ] = useState();
     const [ isValid, setIsValid ] = useState(true);
@@ -20,9 +22,14 @@ const Home = () => {
                 username: enteredUser,
                 password: enteredPass
             });
+
+            localStorage.setItem( 'token', res.data);
+            api.defaults.headers.common['Authorization'] = res.data;
+            history.push("/carteira");
         } catch (error) {
             setIsValid(false);
-            setErrorMessage(error.response.data.message);
+            // setErrorMessage(error.response.data.message);
+            console.log(error);
         }
     }
 
