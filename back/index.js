@@ -1,18 +1,21 @@
 const express = require("express");
-const mysql = require("mysql2/promise");
-const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
+const bodyParser = require("body-parser");
+const cors = require('cors');
+const mysql = require("mysql2/promise");
 
 const SERVER_PORT = 7777;
 const JWT_SECRET = 'mamacoquerbanana';
 
 const app = express();
+
+app.use(cors());
 app.use(bodyParser.json());
 
 // JWT validation
 const secureRouteMiddleware = (req, res, next) => {
     const { authorization } = req.headers;
-    const token = authorization.replace("Bearer ", "");
+    const token = (authorization).replace("Bearer ", "");
 
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) {

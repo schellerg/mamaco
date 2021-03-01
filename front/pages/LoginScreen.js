@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Keyboard } from 'react-native';
 import { StyleSheet, View } from 'react-native';
 import { Button, Input, Layout, Text } from '@ui-kitten/components';
+import * as SecureStore from 'expo-secure-store';
 import api from '../services/api';
 
 const Login = ({ navigation }) => {
@@ -23,6 +24,7 @@ const Login = ({ navigation }) => {
           password: enteredPass
         });
 
+        SecureStore.setItemAsync('jwt', res.data);
         navigation.navigate('Wallet');
       } catch (error) {
         setIsValid(false);

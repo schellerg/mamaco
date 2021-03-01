@@ -17,11 +17,11 @@ const App = () => {
       <ApplicationProvider {...eva} theme={eva.light}>
         <NavigationContainer>
           <Stack.Navigator>
-            {/* <Stack.Screen
+            <Stack.Screen
               name="Login"
               component={Login}
               options={{headerShown:false}}
-            /> */}
+            />
             <Stack.Screen name="Wallet" component={Wallet} />
           </Stack.Navigator>
         </NavigationContainer>
