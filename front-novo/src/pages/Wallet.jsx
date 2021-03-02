@@ -1,13 +1,9 @@
-import React, { Fragment, useEffect, useState } from 'react';
-import { AddIcon } from '@chakra-ui/icons';
-import { Box, Container, FormControl, Heading, IconButton, NumberInput, NumberInputField, Select, SimpleGrid, Stat, StatHelpText, StatNumber, Text } from '@chakra-ui/react';
-import DatePicker from 'react-datepicker';
-import { registerLocale, setDefaultLocale } from  'react-datepicker';
-import ptBR from 'date-fns/locale/pt-BR';
+import React, { useEffect, useState } from 'react';
+import { Button, List, ListItem, ListItemText, TextField, Container, Paper, Grid, Typography, MenuItem, Icon, ListItemAvatar, ListItemSecondaryAction, IconButton } from '@material-ui/core';
+import AddIcon from '@material-ui/icons/Add';
+import DeleteIcon from '@material-ui/icons/Delete';
+import MonetizationOnOutlinedIcon from '@material-ui/icons/MonetizationOnOutlined';
 import api from '../Api';
-import 'react-datepicker/dist/react-datepicker.css';
-
-registerLocale('ptBR', ptBR);
 
 const Wallet = () => {
     const [ investments, setInvestments ] = useState([]);
@@ -59,73 +55,124 @@ const Wallet = () => {
 
         const StockList = items.map((item, index) => 
             (type === item.type) ?
-                <Stat key={index.toString()}>
-                    <StatNumber>{
-                        (new Intl.NumberFormat('pt-BR', {
+                <ListItem key={index.toString()}>
+                    <ListItemAvatar>
+                        <MonetizationOnOutlinedIcon />
+                    </ListItemAvatar>
+                    <ListItemText
+                        primary={(new Intl.NumberFormat('pt-BR', {
                             style: 'currency',
                             currency: 'BRL'
                         }).format(item.value)) }
-                    </StatNumber>
-                    <StatHelpText>{ (new Date(item.date).toLocaleDateString()) }</StatHelpText>
-                </Stat> : null
+                        secondary={ (new Date(item.date).toLocaleDateString()) }
+                    />
+                    <ListItemSecondaryAction>
+                        <IconButton edge='end' aria-label='Apagar'>
+                            <DeleteIcon />
+                        </IconButton>
+                    </ListItemSecondaryAction>
+                </ListItem> : null
         );
 
         return (
-            <Fragment>
+            <List>
                 {StockList}
-            </Fragment>
+            </List>
         );
     }
 
     return (
-        <Container maxW='container.lg'>
-            <Heading textAlign='center'>Carteira de Investimentos</Heading>
-            <SimpleGrid minChildWidth='20px' spacingX='15px'>
-                <Text>Adicionar novo investimento:</Text>
-                <Select placeholder='Tipo' onChange={e => setInsertedType(e.target.value)}>
-                    <option value='RENDA_FIXA'>Renda Fixa</option>
-                    <option value='RENDA_VARIAVEL'>Renda Variável</option>
-                </Select>
+        <Container style={{ padding: 15, margin: 'auto', maxWidth: 1200 }}>
+            <Paper style={{ padding: 15 }}>
+                <Grid container spacing={1}>
+                    <Grid item xs={12} style={{ marginBottom: 30 }}>
+                        <Typography align='center' variant='h4'>Carteira de Investimentos</Typography>
+                    </Grid>
 
-                <NumberInput>
-                    <NumberInputField maxLength={10} placeholder='Valor' onChange={e => setInsertedValue(e.target.value)} />
-                </NumberInput>
+                    <Grid item xs={2}>
+                        <Typography variant='body2'>Adicionar novo investimento:</Typography>
+                    </Grid>
 
-                <FormControl>
-                    <DatePicker
-                        dateFormat='dd/MM/yyyy'
-                        locale='ptBR'
-                        maxDate={new Date()}
-                        placeholderText='Data de compra'
-                        startDate={startDate}
-                        onChange={date => setStartDate(date)}
-                    />
-                </FormControl>
+                    <Grid item xs={3}>
+                        <TextField
+                            fullWidth
+                            label='Tipo'
+                            select
+                            variant='outlined'
+                            onChange={e => setInsertedType(e.target.value)}
+                        >
+                            <MenuItem key="RENDA_FIXA">Renda Fixa</MenuItem>
+                            <MenuItem key="RENDA_VARIVAEL">Renda Variável</MenuItem>
+                        </TextField>
+                    </Grid>
 
-                <IconButton aria-label='Adicionar investimento' icon={<AddIcon />} onClick={handleSubmit} />
-            </SimpleGrid>
+                    <Grid item xs={3}>
+                        <TextField
+                            fullWidth
+                            label='Valor'
+                            type='number'
+                            variant='outlined'
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            onChange={e => setInsertedValue(e.target.value)}
+                        />
+                    </Grid>
 
-            <SimpleGrid columns={2}>
-                <Box>
-                    <Heading>Renda Fixa</Heading>
-                    <StockList items={investments} type='RENDA_FIXA' />
-                </Box>
-                <Box>
-                    <Heading>Renda Variável</Heading>
-                    <StockList items={investments} type='RENDA_VARIAVEL' />
-                </Box>
-            </SimpleGrid>
+                    <Grid item xs={3}>
+                        <TextField
+                            fullWidth
+                            label='Data de compra'
+                            type='date'
+                            variant='outlined'
+                            InputLabelProps={{
+                                shrink: true
+                            }}
+                        />
+                    </Grid>
 
-            <SimpleGrid columns={2}>
-                <Heading>Resumo da Carteira</Heading>
-                <Box>
-                    x% da carteira em renda fixa
-                    y% da carteira em renda variável
-                </Box>
-                <Box>
-                    Gráfico aqui
-                </Box>
-            </SimpleGrid>
+                    <Grid item xs={1}>
+                        <Button
+                            color='primary'
+                            size='large'
+                            startIcon={<AddIcon />}
+                            variant='contained'
+                            onClick={handleSubmit}
+                        />
+                    </Grid>
+                </Grid>
+            </Paper>
+
+            <Paper style={{ padding: 15, marginTop: 30 }}>
+                <Grid container spacing={3}>
+                    <Grid item xs={6}>
+                        <Typography variant='h6'>Renda Fixa</Typography>
+                        <StockList items={investments} type='RENDA_FIXA' />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        <Typography variant='h6'>Renda Fixa</Typography>
+                        <StockList items={investments} type='RENDA_VARIAVEL' />
+                    </Grid>
+                </Grid>
+            </Paper>
+
+            <Paper style={{ padding: 15, marginTop: 30 }}>
+                <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                        <Typography align='center' variant='h5'>Resumo da Carteira</Typography>
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        x% da carteira em renda fixa
+                        y% da carteira em renda variável
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        Gráfico aqui
+                    </Grid>
+                </Grid>
+            </Paper>
         </Container>
     );
 }

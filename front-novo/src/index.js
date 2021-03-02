@@ -1,13 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import { ThemeProvider } from '@material-ui/core/styles';
 import App from './App';
-import { ChakraProvider } from '@chakra-ui/react';
 import reportWebVitals from './reportWebVitals';
+import theme from './theme';
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
 
 ReactDOM.render(
-  <ChakraProvider>
+  <ThemeProvider theme={theme}>
+      <CssBaseline />
       <App />
-  </ChakraProvider>,
+  </ThemeProvider>,
   document.getElementById('root')
 );
 
