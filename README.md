@@ -15,10 +15,17 @@ $ npm start
 ```
 
 ### Front-end
-Entre na pasta [back](/front) e execute o comando:
+Entre na pasta [back](/front-novo) e execute o comando:
 ```bash
 $ npm install
 ```
+
+Execute o comando abaixo dentro do diretório para iniciar a aplicação:
+```bash
+$ npm start
+```
+
+Caso precise editar a porta e o host da API, altere o arquivo [Api.js](/front-novo/src/Api.js).
 
 ## API
 Você pode conferir os endpoints da aplicação neste [link](https://documenter.getpostman.com/view/14696473/TWDamvPN).
