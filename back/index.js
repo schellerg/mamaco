@@ -78,7 +78,7 @@ const loadRoutes = (conn) => {
     app.get("/investments", secureRouteMiddleware, async (req, res) => {
         try {
             const { user } = req;
-            const [rows] = await conn.query(`SELECT * FROM investments WHERE user_id = '${user.id}'`);
+            const [rows] = await conn.query(`SELECT * FROM investments WHERE user_id = '${user.id}' ORDER BY date DESC`);
             const rendaFixa = rows.filter((row) => row.type == 'RENDA_FIXA');
             const rendaVariavel = rows.filter((row) => row.type == 'RENDA_VARIAVEL');
             res.json({
@@ -92,7 +92,7 @@ const loadRoutes = (conn) => {
         }
     });
 
-    // List an user's investments
+    // List an user's investments overview
     app.get("/investments/overview", secureRouteMiddleware, async (req, res) => {
         try {
             const { user } = req;
@@ -111,8 +111,18 @@ const loadRoutes = (conn) => {
             });
 
             // Calculate investments percentage
-            const percentageFixa = total > 0 ? mathjs.divide(totalFixa, total) : 0;
-            const percentageVariavel = total > 0 ? mathjs.divide(totalVariavel, total) : 0;
+            let percentageFixa = total > 0 ? mathjs.divide(totalFixa, total) : 0;
+            let percentageVariavel = total > 0 ? mathjs.divide(totalVariavel, total) : 0;
+
+            percentageFixa = new Intl.NumberFormat('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(percentageFixa * 100);
+
+            percentageVariavel = new Intl.NumberFormat('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(percentageVariavel * 100);
 
             res.json({
                 total,
