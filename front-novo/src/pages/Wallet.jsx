@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Button, List, ListItem, ListItemText, TextField, Container, Paper, Grid, Typography, MenuItem, Icon, ListItemAvatar, ListItemSecondaryAction, IconButton, Select, FormControl, InputLabel } from '@material-ui/core';
+import { Chart } from "react-google-charts";
+import { List, ListItem, ListItemText, TextField, Container, Paper, Grid, Typography, ListItemAvatar, ListItemSecondaryAction, IconButton, Select, FormControl, InputLabel } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
 import MonetizationOnOutlinedIcon from '@material-ui/icons/MonetizationOnOutlined';
@@ -11,10 +12,11 @@ const Wallet = () => {
     const history = useHistory();
     const today = format(new Date(), 'yyyy-MM-dd');
     const [ count, setAmount ] = useState(0);
-    const [ investments, setInvestments ] = useState({ rendaVariavel: [], rendaFixa: []});
+    const [ investments, setInvestments ] = useState({ rendaVariavel: [], rendaFixa: [] });
     const [ insertedType, setInsertedType ] = useState(0);
     const [ insertedValue, setInsertedValue] = useState(0);
     const [ insertedDate, setInsertedDate ] = useState(today);
+    const [ overview, setOverview ]  = useState({ total: 0, rendaVariavel: [], rendaFixa: [] });
     const [ isValid, setValid ] = useState(true);
 
     useEffect(() => {
@@ -27,10 +29,12 @@ const Wallet = () => {
 
         api.defaults.headers.common['Authorization'] = token;
         listInvestments();
+        listOverview();
     }, []);
 
     useEffect(() => {
         listInvestments();
+        listOverview();
     }, [count]);
 
     // Load user investments
@@ -39,19 +43,28 @@ const Wallet = () => {
             const res = await api.get('/investments');
             setInvestments(res.data);
         } catch (error) {
-            console.log(error);
+            if (error.response.status === 403) {
+                history.push("/login");
+            }
         }
     }
 
     // Add user investment
     async function handleSubmit() {
         debugger;
-        console.log(today);
         try {
-            if (insertedType === 0 && insertedValue === 0) {
+            if (insertedType === '0') {
                 setValid(false);
                 return;
             }
+
+            if (parseInt(insertedValue) === 0) {
+                setValid(false);
+                return;
+            }
+
+            // Clear error messages
+            setValid(true);
 
             await api.post('/investments', {
                 type: insertedType,
@@ -75,10 +88,19 @@ const Wallet = () => {
         }
     }
 
+    // List user's investments overview
+    async function listOverview() {
+        try {
+            const res = await api.get('/investments/overview');
+            setOverview(res.data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     // Investments list component
     function StockList(props) {
         const items = props.items;
-        console.log(items);
 
         const StockList = items.map((item) => 
                 <ListItem key={item.id.toString()}>
@@ -129,8 +151,9 @@ const Wallet = () => {
                                 variant='outlined'
                                 onChange={e => setInsertedType(e.target.value)}
                             >
-                                <option value="RENDA_FIXA">Renda Fixa</option>
-                                <option value="RENDA_VARIVAEL">Renda Variável</option>
+                                <option value='0'></option>
+                                <option value='RENDA_FIXA'>Renda Fixa</option>
+                                <option value='RENDA_VARIAVEL'>Renda Variável</option>
                             </Select>
                         </FormControl>
                     </Grid>
@@ -174,7 +197,6 @@ const Wallet = () => {
                     <Grid item xs={1} style={{ display: 'flex', alignItems: 'center' }}>
                         <IconButton
                             color='primary'
-                            size='large'
                             variant='contained'
                             onClick={handleSubmit}
                         >
@@ -184,7 +206,7 @@ const Wallet = () => {
 
                     { !isValid ?
                         <Grid item xs={12}>
-                            <Typography align='center'>Preencha os campos corretamente</Typography>
+                            <Typography align='center' color='error'>Preencha os campos corretamente</Typography>
                         </Grid> : null
                     }
                 </Grid>
@@ -210,13 +232,23 @@ const Wallet = () => {
                         <Typography align='center' variant='h5'>Resumo da Carteira</Typography>
                     </Grid>
 
-                    <Grid item xs={6}>
-                        x% da carteira em renda fixa
-                        y% da carteira em renda variável
+                    <Grid item xs={6} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                        <Typography align='center'>{overview.rendaFixa.percentage}% da carteira em renda fixa</Typography>
+                        <Typography align='center'>{overview.rendaVariavel.percentage}% da carteira em renda variável</Typography>
                     </Grid>
 
                     <Grid item xs={6}>
-                        Gráfico aqui
+                        <Chart
+                            width={'500px'}
+                            height={'300px'}
+                            chartType='PieChart'
+                            loader={<div>Carregando...</div>}
+                            data={[
+                                [ 'Renda', 'Total'],
+                                [ 'Fixa', overview.rendaFixa.total ],
+                                [ 'Variável', overview.rendaVariavel.total ]
+                              ]}
+                        />
                     </Grid>
                 </Grid>
             </Paper>
