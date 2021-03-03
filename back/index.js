@@ -2,6 +2,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bodyParser = require("body-parser");
 const cors = require('cors');
+const mathjs = require('mathjs');
 const mysql = require("mysql2/promise");
 
 const SERVER_PORT = 7777;
@@ -74,11 +75,56 @@ const loadRoutes = (conn) => {
     });
 
     // List an user's investments
-    app.get("/investment", secureRouteMiddleware, async (req, res) => {
+    app.get("/investments", secureRouteMiddleware, async (req, res) => {
         try {
             const { user } = req;
             const [rows] = await conn.query(`SELECT * FROM investments WHERE user_id = '${user.id}'`);
-            res.json(rows);
+            const rendaFixa = rows.filter((row) => row.type == 'RENDA_FIXA');
+            const rendaVariavel = rows.filter((row) => row.type == 'RENDA_VARIAVEL');
+            res.json({
+                rendaFixa,
+                rendaVariavel
+            });
+        } catch (error) {
+            res.status(500).json({
+                message: error.message,
+            });
+        }
+    });
+
+    // List an user's investments
+    app.get("/investments/overview", secureRouteMiddleware, async (req, res) => {
+        try {
+            const { user } = req;
+            const [rows] = await conn.query(`SELECT * FROM investments WHERE user_id = '${user.id}'`);
+
+            let total = 0;
+            let totalFixa = 0;
+            let totalVariavel = 0;
+
+            // Return the total amount of investments
+            rows.forEach((investment) => {
+                total = mathjs.add(total, investment.value);
+                investment.type == 'RENDA_FIXA' ? 
+                    totalFixa = mathjs.add(totalFixa, investment.value) : 
+                    totalVariavel = mathjs.add(totalVariavel, investment.value);
+            });
+
+            // Calculate investments percentage
+            const percentageFixa = total > 0 ? mathjs.divide(totalFixa, total) : 0;
+            const percentageVariavel = total > 0 ? mathjs.divide(totalVariavel, total) : 0;
+
+            res.json({
+                total,
+                rendaFixa: {
+                    total: totalFixa,
+                    percentage: percentageFixa
+                },
+                rendaVariavel: {
+                    total: totalVariavel,
+                    percentage: percentageVariavel
+                }
+            });
         } catch (error) {
             res.status(500).json({
                 message: error.message,
@@ -87,7 +133,7 @@ const loadRoutes = (conn) => {
     });
 
     // Insert an user's investment
-    app.post("/investment", secureRouteMiddleware, async (req, res) => {
+    app.post("/investments", secureRouteMiddleware, async (req, res) => {
         try {
             const { user, body: { type, value, date }} = req;
             const [rows] = await conn.query(`INSERT INTO investments (type, value, date, user_id) VALUES ('${type}', '${value}', '${date}', '${user.id}')`);
@@ -100,7 +146,7 @@ const loadRoutes = (conn) => {
     });
 
     // Delete an user's investment
-    app.delete("/investment/:id", secureRouteMiddleware, async (req, res) => {
+    app.delete("/investments/:id", secureRouteMiddleware, async (req, res) => {
         try {
             const { user, params: { id }} = req;
             const [userInvestments] = await conn.query(`SELECT * FROM investments WHERE user_id = ${user.id} AND id = ${id}`);

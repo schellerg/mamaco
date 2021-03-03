@@ -1,61 +1,87 @@
 import React, { useEffect, useState } from 'react';
-import { Button, List, ListItem, ListItemText, TextField, Container, Paper, Grid, Typography, MenuItem, Icon, ListItemAvatar, ListItemSecondaryAction, IconButton } from '@material-ui/core';
+import { useHistory } from 'react-router-dom';
+import { format } from 'date-fns';
+import { Button, List, ListItem, ListItemText, TextField, Container, Paper, Grid, Typography, MenuItem, Icon, ListItemAvatar, ListItemSecondaryAction, IconButton, Select, FormControl, InputLabel } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
 import MonetizationOnOutlinedIcon from '@material-ui/icons/MonetizationOnOutlined';
 import api from '../Api';
 
 const Wallet = () => {
-    const [ investments, setInvestments ] = useState([]);
+    const history = useHistory();
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const [ count, setAmount ] = useState(0);
+    const [ investments, setInvestments ] = useState({ rendaVariavel: [], rendaFixa: []});
     const [ insertedType, setInsertedType ] = useState(0);
     const [ insertedValue, setInsertedValue] = useState(0);
-    const [ startDate, setStartDate ] = useState(new Date());
+    const [ insertedDate, setInsertedDate ] = useState(today);
+    const [ isValid, setValid ] = useState(true);
 
-    // Load user investments
     useEffect(() => {
-        const listInvestments = async () => {
-            try {
-                const res = await api.get('/investment');
-                setInvestments(res.data);
-            } catch (error) {
-                console.log(error);
-            }
+        const token = localStorage.getItem( 'token');
+
+        if (!token) {
+            history.push("/login");
+            return;
         }
 
+        api.defaults.headers.common['Authorization'] = token;
         listInvestments();
     }, []);
 
+    useEffect(() => {
+        listInvestments();
+    }, [count]);
+
+    // Load user investments
+    async function listInvestments() {
+        try {
+            const res = await api.get('/investments');
+            setInvestments(res.data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     // Add user investment
     async function handleSubmit() {
-        console.log(startDate);
+        debugger;
+        console.log(today);
         try {
-            const offest = startDate.getTimezoneOffset();
-            let formatedDate = new Date(startDate.getTime() - (offest * 60 * 1000));
-            formatedDate = formatedDate.toISOString().split('T')[0];
-
-            console.log(formatedDate);
-
             if (insertedType === 0 && insertedValue === 0) {
+                setValid(false);
                 return;
             }
 
-            const res = await api.post('/investment', {
+            await api.post('/investments', {
                 type: insertedType,
                 value: insertedValue,
-                date: formatedDate
+                date: insertedDate
             });
+
+            setAmount(count + 1);
         } catch (error) {
-            
+            console.log(error);
         }
     };
 
+    // Delete user investment
+    async function deleteInvestment(id) {
+        try {
+            await api.delete(`/investments/${id}`);
+            setAmount(count - 1);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    // Investments list component
     function StockList(props) {
         const items = props.items;
-        const type = props.type;
+        console.log(items);
 
-        const StockList = items.map((item, index) => 
-            (type === item.type) ?
-                <ListItem key={index.toString()}>
+        const StockList = items.map((item) => 
+                <ListItem key={item.id.toString()}>
                     <ListItemAvatar>
                         <MonetizationOnOutlinedIcon />
                     </ListItemAvatar>
@@ -67,11 +93,11 @@ const Wallet = () => {
                         secondary={ (new Date(item.date).toLocaleDateString()) }
                     />
                     <ListItemSecondaryAction>
-                        <IconButton edge='end' aria-label='Apagar'>
+                        <IconButton edge='end' aria-label='Apagar' id={item.id} onClick={() => deleteInvestment(item.id)}>
                             <DeleteIcon />
                         </IconButton>
                     </ListItemSecondaryAction>
-                </ListItem> : null
+                </ListItem>
         );
 
         return (
@@ -89,29 +115,38 @@ const Wallet = () => {
                         <Typography align='center' variant='h4'>Carteira de Investimentos</Typography>
                     </Grid>
 
-                    <Grid item xs={2}>
+                    <Grid item xs={2} style={{ display: 'flex', alignItems: 'center' }}>
                         <Typography variant='body2'>Adicionar novo investimento:</Typography>
                     </Grid>
 
                     <Grid item xs={3}>
-                        <TextField
-                            fullWidth
-                            label='Tipo'
-                            select
-                            variant='outlined'
-                            onChange={e => setInsertedType(e.target.value)}
-                        >
-                            <MenuItem key="RENDA_FIXA">Renda Fixa</MenuItem>
-                            <MenuItem key="RENDA_VARIVAEL">Renda Variável</MenuItem>
-                        </TextField>
+                        <FormControl fullWidth variant='outlined'>
+                            <InputLabel>Tipo</InputLabel>
+                            <Select
+                                label='Tipo'
+                                native
+                                value={insertedType}
+                                variant='outlined'
+                                onChange={e => setInsertedType(e.target.value)}
+                            >
+                                <option value="RENDA_FIXA">Renda Fixa</option>
+                                <option value="RENDA_VARIVAEL">Renda Variável</option>
+                            </Select>
+                        </FormControl>
                     </Grid>
 
                     <Grid item xs={3}>
                         <TextField
                             fullWidth
                             label='Valor'
+                            min={0}
                             type='number'
+                            value={insertedValue}
                             variant='outlined'
+                            inputProps={{
+                                min: 0,
+                                max: 10,
+                            }}
                             InputLabelProps={{
                                 shrink: true,
                             }}
@@ -121,25 +156,37 @@ const Wallet = () => {
 
                     <Grid item xs={3}>
                         <TextField
+                            defaultValue={today}
                             fullWidth
                             label='Data de compra'
                             type='date'
                             variant='outlined'
+                            inputProps={{
+                                max: today
+                            }}
                             InputLabelProps={{
                                 shrink: true
                             }}
+                            onChange={e => setInsertedDate(e.target.value)}
                         />
                     </Grid>
 
-                    <Grid item xs={1}>
-                        <Button
+                    <Grid item xs={1} style={{ display: 'flex', alignItems: 'center' }}>
+                        <IconButton
                             color='primary'
                             size='large'
-                            startIcon={<AddIcon />}
                             variant='contained'
                             onClick={handleSubmit}
-                        />
+                        >
+                            <AddIcon />
+                        </IconButton>
                     </Grid>
+
+                    { !isValid ?
+                        <Grid item xs={12}>
+                            <Typography align='center'>Preencha os campos corretamente</Typography>
+                        </Grid> : null
+                    }
                 </Grid>
             </Paper>
 
@@ -147,12 +194,12 @@ const Wallet = () => {
                 <Grid container spacing={3}>
                     <Grid item xs={6}>
                         <Typography variant='h6'>Renda Fixa</Typography>
-                        <StockList items={investments} type='RENDA_FIXA' />
+                        <StockList items={investments.rendaFixa} type='RENDA_FIXA' />
                     </Grid>
 
                     <Grid item xs={6}>
-                        <Typography variant='h6'>Renda Fixa</Typography>
-                        <StockList items={investments} type='RENDA_VARIAVEL' />
+                        <Typography variant='h6'>Renda Variável</Typography>
+                        <StockList items={investments.rendaVariavel} type='RENDA_VARIAVEL' />
                     </Grid>
                 </Grid>
             </Paper>

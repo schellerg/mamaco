@@ -28,7 +28,7 @@ const Home = () => {
             history.push("/carteira");
         } catch (error) {
             setIsValid(false);
-            // setErrorMessage(error.response.data.message);
+            setErrorMessage(error.response.data.message);
             console.log(error);
         }
     }

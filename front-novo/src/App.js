@@ -7,10 +7,10 @@ function App() {
   return (
     <Router>
       <Switch>
-        <Route exact path='/'>
+        <Route exact path='/login'>
           <Home/>
         </Route>
-        <Route path='/carteira'>
+        <Route path='/'>
           <Wallet />
         </Route>
       </Switch>
