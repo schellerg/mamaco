@@ -182,11 +182,14 @@ const loadRoutes = (conn) => {
 app.listen(SERVER_PORT, async () => {
     try {
         // Database connection
-        const connection = await mysql.createConnection({
+        const connection = await mysql.createPool({
             host: 'localhost',
             user: 'root',
             password: 'root',
-            database: 'gorila'
+            database: 'gorila',
+            waitForConnections: true,
+            connectionLimit: 10,
+            queueLimit: 0
         });
 
         console.log(`Server is up at port ${SERVER_PORT}`);
